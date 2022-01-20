@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
+import java.util.Objects;
 
 public class ClientServiceThread extends Thread {
     private final BufferedReader bufferedReader;
@@ -46,7 +46,10 @@ public class ClientServiceThread extends Thread {
 
     private void sendMsgAll(String msg) throws IOException {
         for (int i = 0; i < server.size(); i++) {
-            server.getUserThread(i).sendMsg(msg);
+            ClientServiceThread clientServiceThread = server.getUserThread(i);
+            if (!clientServiceThread.equals(this)) {
+                server.getUserThread(i).sendMsg(msg);
+            }
         }
     }
 
@@ -56,4 +59,16 @@ public class ClientServiceThread extends Thread {
         bufferedWriter.flush();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientServiceThread that = (ClientServiceThread) o;
+        return Objects.equals(bufferedReader, that.bufferedReader) && Objects.equals(bufferedWriter, that.bufferedWriter) && Objects.equals(socket, that.socket) && Objects.equals(server, that.server);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bufferedReader, bufferedWriter, socket, server);
+    }
 }
